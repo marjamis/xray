@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+  xray:
+    build: xray
+    ports:
+      - 2000:2000
+      - 2000:2000/udp
+
+  app:
+    build: app
+    ports:
+      -  8081:3000
+    links:
+      - xray

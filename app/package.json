@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "start": "node /usr/src/app/app.js"
+  },
+  "dependencies": {
+    "express": "4.15.2",
+    "aws-xray-sdk": "1.0.5-beta",
+    "aws-sdk": "2.23.0",
+    "winston": "2.3.1"
+  }
+}
