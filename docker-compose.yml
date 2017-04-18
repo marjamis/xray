@@ -2,14 +2,27 @@ version: '3'
 
 services:
   xray:
-    image: xray_xray
-    ports:
-      - 2000:2000
-      - 2000:2000/udp
+    build: xray
+    image: ${REGISTRY}/${REPOSITORY}:xray_daemon
 
-  app:
-    image: xray_app
+  nodejs:
+    depends_on:
+      - xray
+      - nodejs-backend
+    build: nodejs
+    image: ${REGISTRY}/${REPOSITORY}:xray_nodejs-app
+    environment:
+      - APP_NAME=frontend
+      - AWS_XRAY_DEBUG_MODE=debug
     ports:
       -  8081:3000
-    links:
+
+  nodejs-backend:
+    depends_on:
       - xray
+    environment:
+      - APP_NAME=backend
+      - AWS_XRAY_DEBUG_MODE=debug
+    image: ${REGISTRY}/${REPOSITORY}:xray_nodejs-app
+
+#create similar for all supported applications
