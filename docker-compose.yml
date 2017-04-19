@@ -4,6 +4,10 @@ services:
   xray:
     build: xray
     image: ${REGISTRY}/${REPOSITORY}:xray_daemon
+    volumes:
+      - ~/.aws/:/root/.aws/
+    environment:
+      - AWS_DEFAULT_REGION=${REGION}
 
   nodejs:
     depends_on:
@@ -12,16 +16,16 @@ services:
     build: nodejs
     image: ${REGISTRY}/${REPOSITORY}:xray_nodejs-app
     environment:
-      - APP_NAME=frontend
+      - APP_NAME=nodejs-frontend
       - AWS_XRAY_DEBUG_MODE=debug
     ports:
-      -  8081:3000
+      -  80:3000
 
   nodejs-backend:
     depends_on:
       - xray
     environment:
-      - APP_NAME=backend
+      - APP_NAME=nodejs-backend
       - AWS_XRAY_DEBUG_MODE=debug
     image: ${REGISTRY}/${REPOSITORY}:xray_nodejs-app
 

@@ -23,7 +23,7 @@ dns.lookup('nodejs-backend', options, (err, address, family) =>
 AWSXRay.config([AWSXRay.plugins.EC2, AWSXRay.plugins.ECS]);
 winston.level = 'debug'; AWSXRay.setLogger(winston);
 AWSXRay.middleware.setSamplingRules('./xray_sampling-rules.json');
-AWSXRay.middleware.enableDynamicNaming('*');
+//AWSXRay.middleware.enableDynamicNaming('*');
 // END: AWS X-Ray configuration details
 console.log("Starting: ");
 console.log(process.env.APP_NAME);

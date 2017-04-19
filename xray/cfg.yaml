@@ -14,7 +14,7 @@ Processor:
   # Segment Batch Processor Queue Size
   BatchProcessorQueueSize: 20
   # Uncommment Region to send segments to AWS X-Ray service that in a specific region
-  #Region: "us-west-2"
+  Region: "us-west-2"
 Logging:
   LogFormat: "%Date(2006-01-02T15:04:05Z07:00) [%Level] %Msg%n"
   # Log level, from most verbose to least: dev, debug, info, warn, error, prod (default).
