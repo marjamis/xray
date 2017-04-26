@@ -1,4 +1,4 @@
-var express    = require("express");
+var express    = require('express');
 var AWSXRay = require('aws-xray-sdk');
 var AWS = require('aws-sdk');
 var winston = require('winston');
@@ -25,14 +25,13 @@ winston.level = 'debug'; AWSXRay.setLogger(winston);
 AWSXRay.middleware.setSamplingRules('./xray_sampling-rules.json');
 //AWSXRay.middleware.enableDynamicNaming('*');
 // END: AWS X-Ray configuration details
-console.log("Starting: ");
-console.log(process.env.APP_NAME);
+console.log("Starting: " + process.env.APP_NAME);
 app.use(AWSXRay.express.openSegment(process.env.APP_NAME));
 
 app.get("/",function(req,resp){
   var seg = AWSXRay.getSegment();
   seg.addAnnotation('User-Agent', req.get('User-Agent'));
-  seg.addMetadata('MetadataKey', 'MetadataValue');
+  seg.addMetadata('MetadataKey', 'MetadataValue', 'general');
 
   AWSXRay.capture('responseGeneration-/', function(subsegment){
     body = "This is the correct webpage\n\n";
@@ -48,7 +47,6 @@ app.get("/",function(req,resp){
     Segment: seg
   }
   var outbound_req = http.request(options, (res) => {
-    console.log('Attempting remote connection');
     res.on('data', (chunk) => {
       console.log(`BODY: ${chunk}`);
     });
@@ -56,7 +54,6 @@ app.get("/",function(req,resp){
       console.log('No more data');
     });
   });
-
   outbound_req.write('temp');
   outbound_req.end();
 
@@ -68,7 +65,9 @@ app.get("/",function(req,resp){
 });
 
 app.get("/true",function(req,resp){
-  console.log('Conection seen...');
+  var seg = AWSXRay.getSegment();
+  seg.addAnnotation('User-Agent', req.get('User-Agent'));
+  seg.addMetadata('MetadataKey', 'MetadataValue', 'general');
   AWSXRay.capture('responseGeneration-/true', function(subsegment){
     body = "true";
   });

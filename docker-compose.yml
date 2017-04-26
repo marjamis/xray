@@ -1,14 +1,22 @@
 version: '3'
 
 services:
+  # X-Ray the daemon that will be used by all the below services. Every other service is dependent on it.
+  # FR: Add deploy configs for one per docker host? Think about.
   xray:
     build: xray
     image: ${REGISTRY}/${REPOSITORY}:xray_daemon
+    environment:
+      - AWS_REGION=${REGION}
+      - AWS_XRAY_DEBUG_MODE=info
+      - AWS_XRAY_DAEMON_ADDRESS=xray:2000
     volumes:
       - ~/.aws/:/root/.aws/
-    environment:
-      - AWS_DEFAULT_REGION=${REGION}
+    networks:
+      - current
 
+  # Node.js using X-Ray
+  # Node.js Frontend app
   nodejs:
     depends_on:
       - xray
@@ -18,15 +26,26 @@ services:
     environment:
       - APP_NAME=nodejs-frontend
       - AWS_XRAY_DEBUG_MODE=debug
+      - AWS_XRAY_TRACING_NAME=nodejs-frontend
+      - AWS_XRAY_CONTEXT_MISSING=RUNTIME_ERROR
     ports:
       -  80:3000
+    networks:
+      - current
 
+  # Node.js Backend app
   nodejs-backend:
     depends_on:
       - xray
+    image: ${REGISTRY}/${REPOSITORY}:xray_nodejs-app
     environment:
       - APP_NAME=nodejs-backend
       - AWS_XRAY_DEBUG_MODE=debug
-    image: ${REGISTRY}/${REPOSITORY}:xray_nodejs-app
+      - AWS_XRAY_TRACING_NAME=nodejs-backend
+      - AWS_XRAY_CONTEXT_MISSING=RUNTIME_ERROR
+    networks:
+      - current
 
-#create similar for all supported applications
+networks:
+  current:
+    driver: overlay
