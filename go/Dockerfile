@@ -1,4 +1,5 @@
 FROM golang:1.9 as build
+WORKDIR /go/src/application/
 RUN go get -u github.com/Masterminds/glide
 COPY glide.* ./
 RUN glide install
@@ -10,5 +11,5 @@ FROM alpine:latest
 LABEL maintainer=marjamis@amazon.com \
       version=testing
 USER nobody
-COPY --from=build .
+COPY --from=build /go/src/application/app .
 ENTRYPOINT ["./app"]
