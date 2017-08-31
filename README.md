@@ -13,8 +13,7 @@ NOTE: The used docker-compose file does currently require an .env file for the u
 
 Or:
 
-```export $(cat .env) && 
-docker stack deploy --compose-file ./docker-compose <stack-name>```
+```export $(cat .env) && docker stack deploy --compose-file ./docker-compose <stack-name>```
 
 ## Examples provided
 ### X-Ray daemon

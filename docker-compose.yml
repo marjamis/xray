@@ -8,12 +8,23 @@ services:
     image: ${REGISTRY}/${REPOSITORY}:xray_daemon
     environment:
       - AWS_REGION=${REGION}
-      - AWS_XRAY_DEBUG_MODE=info
+      - AWS_XRAY_DEBUG_MODE=debug
       - AWS_XRAY_DAEMON_ADDRESS=xray:2000
+    ports:
+      - 2000:2000/udp
     volumes:
       - ~/.aws/:/root/.aws/
-    networks:
-      - current
+    # networks:
+    #   - current
+
+
+  go:
+    depends_on:
+      - xray
+    build: go
+    image: go-test
+    ports:
+      - 7000:8080
 
   # Node.js using X-Ray
   # Node.js Frontend app
@@ -49,3 +60,5 @@ services:
 networks:
   current:
     driver: overlay
+    driver_opts:
+      encrypted: 'yes'
