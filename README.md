@@ -1,32 +1,79 @@
 # X-Ray
 X-Ray configuration for testing/explanations.
 
-More to come.
+**This is still very much a work in-progress and some things will require updating/improving.**
 
 ## General
-All applications are run with Docker allowing for a simple docker-compose file which calls the specific application you want or even all of them.
+Most of the applications are runnable via the docker-compose.yml file for simplicity.
 
-NOTE: The used docker-compose file does currently require an .env file for the used environment variables.
+**NOTE:** The docker-compose.yml file requires an .env file for environment variables used throughout.
 
 ### Usage
-```docker-compose up <service_or_blank> ```
+```bash
+docker-compose up <service_or_blank>
+```
 
 Or:
 
-```export $(cat .env) && docker stack deploy --compose-file ./docker-compose <stack-name>```
+```bash
+export $(cat .env) && \
+docker stack deploy --compose-file ./docker-compose <stack-name>
+```
 
 ## Examples provided
-### X-Ray daemon
-```docker-compose up xray``` //Though this will be started up automatically from any other platform.
+All applications does/will have:
 * Docker containerised
-
-### Node.js
-To run:
-```docker-compose up nodejs```
-* Uses express
 * Traces through a front-end and a back-end application
 * Uses sampling based of a configuration file
 * Adds custom X-Ray annotations
 * Adds customs X-Ray metadata
 * Captures an synchronous call
 * Capture an asynchronous call
+
+AWS Services does/will trace:
+* ALB/ELB
+* API Gateway
+* DynamoDDB
+
+### X-Ray daemon
+```bash
+docker-compose up xray # This is a dependency for all applications started via docker-compose.yml
+```
+### "C#"
+PENDING
+
+### Go
+To run:
+```bash
+docker-compose up go
+```
+* Uses custom Segments due to non-supported frameworks
+
+### Java
+Already provided Java example:
+https://github.com/awslabs/eb-java-scorekeep/tree/xray
+
+### Node.js
+To run:
+```bash
+docker-compose up nodejs
+```
+* Uses express
+
+### Ruby
+PENDING
+
+
+### Generic structure of the applications
+> / # Entrypoint of webapp
+
+> /true # One internal function
+
+> /false # Second internal function
+
+#### Testing samples
+Simple test against an endpoint with 30 concurrent users with a total of 1000 requests.
+```bash
+ab -k -c 30 -n 1000 <endpoint>/
+```
+If you're needing additional configurations/outputs the ab man page is the place to be.

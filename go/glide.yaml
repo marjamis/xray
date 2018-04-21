@@ -1,6 +1,0 @@
-package: .
-import:
-- package: github.com/cihub/seelog
-  version: ^2.6.0
-- package: github.com/emicklei/go-restful
-  version: ^2.2.1

@@ -1,10 +1,10 @@
-var express    = require('express');
+var express = require('express');
 var AWSXRay = require('aws-xray-sdk');
 var AWS = require('aws-sdk');
 var winston = require('winston');
 var dns = require('dns');
 var http = require('http');
-AWSXRay.captureHTTPs(http);
+var tracedHttp = AWSXRay.captureHTTPs(require('http'));
 
 var app = express();
 
@@ -14,15 +14,15 @@ const options = {
   family: 4,
   hints: dns.ADDRCONFIG | dns.V4MAPPED,
 };
-dns.lookup('xray', options, (err, address, family) =>
+dns.lookup('xray-daemon', options, (err, address, family) =>
   AWSXRay.setDaemonAddress(address+':2000'));
 
 dns.lookup('nodejs-backend', options, (err, address, family) =>
   ip = address);
 
-AWSXRay.config([AWSXRay.plugins.EC2, AWSXRay.plugins.ECS]);
+//AWSXRay.config([AWSXRay.plugins.EC2, AWSXRay.plugins.ECS]);
 winston.level = 'debug'; AWSXRay.setLogger(winston);
-AWSXRay.middleware.setSamplingRules('./xray_sampling-rules.json');
+AWSXRay.middleware.setSamplingRules('/xray_sampling_rules.json');
 //AWSXRay.middleware.enableDynamicNaming('*');
 // END: AWS X-Ray configuration details
 console.log("Starting: " + process.env.APP_NAME);
@@ -33,7 +33,7 @@ app.get("/",function(req,resp){
   seg.addAnnotation('User-Agent', req.get('User-Agent'));
   seg.addMetadata('MetadataKey', 'MetadataValue', 'general');
 
-  AWSXRay.capture('responseGeneration-/', function(subsegment){
+  AWSXRay.captureFunc('responseGeneration-/', function(subsegment){
     body = "This is the correct webpage\n\n";
   });
 
@@ -41,12 +41,11 @@ app.get("/",function(req,resp){
 
   var options = {
     host: ip,
-    path: '/true',
+    path: '/data',
     port: '3000',
-    method: 'GET',
-    Segment: seg
+    method: 'GET'
   }
-  var outbound_req = http.request(options, (res) => {
+  var outbound_req = tracedHttp.request(options, (res) => {
     res.on('data', (chunk) => {
       console.log(`BODY: ${chunk}`);
     });
@@ -57,22 +56,22 @@ app.get("/",function(req,resp){
   outbound_req.write('temp');
   outbound_req.end();
 
-  AWSXRay.captureAsync('responseWriting-/', function(subsegment){
+  AWSXRay.captureAsyncFunc('responseWriting-/', function(subsegment){
     resp.write(body)
     resp.end();
     subsegment.close();
   });
 });
 
-app.get("/true",function(req,resp){
+app.get("/data",function(req,resp){
   var seg = AWSXRay.getSegment();
   seg.addAnnotation('User-Agent', req.get('User-Agent'));
   seg.addMetadata('MetadataKey', 'MetadataValue', 'general');
-  AWSXRay.capture('responseGeneration-/true', function(subsegment){
-    body = "true";
+  AWSXRay.captureFunc('responseGeneration-/data', function(subsegment){
+    body = '{"data": true}';
   });
 
-  AWSXRay.captureAsync('responseWriting-/true', function(subsegment){
+  AWSXRay.captureAsyncFunc('responseWriting-/data', function(subsegment){
     resp.write(body)
     resp.end();
     subsegment.close();

@@ -2,7 +2,7 @@
   "version": 1,
   "rules": [
     {
-      "description": "IncomingRequests",
+      "description": "AllIncomingRequests",
       "service_name": "*",
       "http_method": "*",
       "url_path": "/",

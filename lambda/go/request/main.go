@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/aws/aws-lambda-go/lambda"
@@ -11,9 +10,7 @@ import (
 	"github.com/aws/aws-xray-sdk-go/xray"
 )
 
-var (
-	CWSVC *cloudwatch.CloudWatch
-)
+var cwsvc *cloudwatch.CloudWatch
 
 type request struct {
 	ID    float64 `json:"id"`
@@ -25,32 +22,25 @@ type response struct {
 	Ok      bool   `json:"ok"`
 }
 
-func handler(request request) (response, error) {
-	ctx, seg := xray.BeginSegment(context.Background(), "MyGoFunc")
-	defer seg.Close(nil)
-
-	log.Println("here")
-
-	sess := session.Must(session.NewSession())
-	CWSVC := cloudwatch.New(sess)
-	xray.AWS(CWSVC.Client)
-	xray.Configure(xray.Config{LogLevel: "info"})
-
+func handler(ctx context.Context, req request) error {
 	alarmNamePrefix := "ECS"
 	alarminput := &cloudwatch.DescribeAlarmsInput{
 		AlarmNamePrefix: &alarmNamePrefix,
 	}
-	data, _ := CWSVC.DescribeAlarmsWithContext(ctx, alarminput)
+	data, err := cwsvc.DescribeAlarmsWithContext(ctx, alarminput)
+	if err != nil {
+		return err
+	}
 
 	log.Println("data")
 	log.Println(data)
 
-	return response{
-		Message: fmt.Sprintf("Processed request ID %f", request.ID),
-		Ok:      true,
-	}, nil
+	return nil
 }
 
 func main() {
+	cwsvc = cloudwatch.New(session.Must(session.NewSession(nil)))
+	xray.AWS(cwsvc.Client)
+	xray.Configure(xray.Config{LogLevel: "debug"})
 	lambda.Start(handler)
 }

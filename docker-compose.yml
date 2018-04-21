@@ -1,15 +1,18 @@
-version: '3'
+version: '3.3'
 
 services:
   # X-Ray the daemon that will be used by all the below services. Every other service is dependent on it.
-  # FR: Add deploy configs for one per docker host? Think about.
-  xray:
-    build: xray
-    image: ${REGISTRY}/${REPOSITORY}:xray_daemon
-    environment:
-      - AWS_REGION=${REGION}
-      - AWS_XRAY_DEBUG_MODE=debug
-      - AWS_XRAY_DAEMON_ADDRESS=xray:2000
+  xray-daemon:
+    image: ${REGISTRY}/${REPOSITORY}:xray-daemon
+    command:
+      - '-o'
+      - '--log-level=debug'
+      - '--bind=xray-daemon:2000'
+    build:
+      context: ./xray-daemon
+      dockerfile: Dockerfile
+      labels:
+        - "Maintainer=marjamis@amazon.com"
     ports:
       - 2000:2000/udp
     volumes:
@@ -17,22 +20,37 @@ services:
     # networks:
     #   - current
 
-
   go:
     depends_on:
-      - xray
-    build: go
-    image: ${REGISTRY}/${REPOSITORY}:go
+      - xray-daemon
+    image: ${REGISTRY}/${REPOSITORY}:xray_go
+    build:
+      context: ./go
+      dockerfile: Dockerfile
+      labels:
+        - "Maintainer=marjamis@amazon.com"
     ports:
       - 7000:8080
+    volumes:
+      - ./xray_sampling_rules.json:/xray_sampling_rules.json
+    configs:
+      - source: xray_sampling_rules
+        target: /xray_sampling_rules.json
+        uid: '1000'
+        gid: '1000'
+        mode: 0777
 
   # Node.js using X-Ray
   # Node.js Frontend app
   nodejs:
     depends_on:
-      - xray
+      - xray-daemon
       - nodejs-backend
-    build: nodejs
+    build:
+      context: ./nodejs
+      dockerfile: Dockerfile
+      labels:
+        - "Maintainer=marjamis@amazon.com"
     image: ${REGISTRY}/${REPOSITORY}:xray_nodejs-app
     environment:
       - APP_NAME=nodejs-frontend
@@ -41,24 +59,44 @@ services:
       - AWS_XRAY_CONTEXT_MISSING=RUNTIME_ERROR
     ports:
       -  80:3000
-    networks:
-      - current
+    # networks:
+    #   - current
+    volumes:
+      - ./xray_sampling_rules.json:/xray_sampling_rules.json
+    configs:
+      - source: xray_sampling_rules
+        target: /xray_sampling_rules.json
+        uid: '1000'
+        gid: '1000'
+        mode: 0777
 
   # Node.js Backend app
   nodejs-backend:
     depends_on:
-      - xray
+      - xray-daemon
     image: ${REGISTRY}/${REPOSITORY}:xray_nodejs-app
     environment:
       - APP_NAME=nodejs-backend
       - AWS_XRAY_DEBUG_MODE=debug
       - AWS_XRAY_TRACING_NAME=nodejs-backend
       - AWS_XRAY_CONTEXT_MISSING=RUNTIME_ERROR
-    networks:
-      - current
+    # networks:
+    #   - current
+    volumes:
+      - ./xray_sampling_rules.json:/xray_sampling_rules.json
+    configs:
+      - source: xray_sampling_rules
+        target: /xray_sampling_rules.json
+        uid: '1000'
+        gid: '1000'
+        mode: 0777
 
-networks:
-  current:
-    driver: overlay
-    driver_opts:
-      encrypted: 'yes'
+# networks:
+#   current:
+#     driver: overlay
+#     driver_opts:
+#       encrypted: 'yes'
+
+configs:
+  xray_sampling_rules:
+    file: ./xray_sampling_rules.json

@@ -1,0 +1,7 @@
+Socket:
+  UDPAddress: "127.0.0.1:2000"
+Region: "us-west-2"
+Logging:
+  LogLevel: "warn"
+  LogPath: "/logging"
+Version: 1

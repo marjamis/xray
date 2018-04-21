@@ -5,7 +5,6 @@ WORKDIR /usr/src/app
 COPY ./package.json /usr/src/app
 RUN npm install
 COPY ./app.js /usr/src/app
-COPY ./xray_sampling-rules.json /usr/src/app
 
 USER node
 EXPOSE 3000
