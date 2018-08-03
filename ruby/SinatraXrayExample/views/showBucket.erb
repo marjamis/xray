@@ -1,0 +1,12 @@
+<h1>The bucket <%= bucky %> contains:</h1>
+<table class="table table-inverse">
+  <tr>
+      <th scope="col">KEY</th><th scope="col">SIZE</th><th scope="col">Last Modified</th>
+  </tr>
+  <% bucket.each do |obj| %>
+    <tr>
+        <td scope="row"><%= obj.key %></td><td scope="row"><%= obj.size %></td><td scope="row"><%= obj.last_modified %></td>
+    </tr>
+  <% end %>
+</table>
+<a href="/" class="btn btn-info">Go Back</a>
