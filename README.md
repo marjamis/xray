@@ -10,7 +10,7 @@ Most of the applications are runnable via the docker-compose.yml file for simpli
 
 ### Usage
 ```bash
-docker-compose up <service_or_blank>
+docker-compose up <supported_application>
 ```
 
 Or:
@@ -20,8 +20,8 @@ export $(cat .env) && \
 docker stack deploy --compose-file ./docker-compose <stack-name>
 ```
 
-## Examples provided
-All applications does/will have:
+## Examples
+All applications do/will have:
 * Docker containerised
 * Traces through a front-end and a back-end application
 * Uses sampling based of a configuration file
@@ -30,17 +30,16 @@ All applications does/will have:
 * Captures an synchronous call
 * Capture an asynchronous call
 
-AWS Services does/will trace:
+All applications do/will trace the following AWS Services:
 * ALB/ELB
 * API Gateway
 * DynamoDDB
 
 ### X-Ray daemon
+**Note:** This is a dependency for all applications started via docker-compose.yml
 ```bash
-docker-compose up xray # This is a dependency for all applications started via docker-compose.yml
+docker-compose up xray
 ```
-### "C#"
-PENDING
 
 ### Go
 To run:
@@ -62,14 +61,6 @@ docker-compose up nodejs
 
 ### Ruby
 PENDING
-
-
-### Generic structure of the applications
-> / # Entrypoint of webapp
-
-> /true # One internal function
-
-> /false # Second internal function
 
 #### Testing samples
 Simple test against an endpoint with 30 concurrent users with a total of 1000 requests.
