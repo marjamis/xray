@@ -17,9 +17,8 @@ services:
       - 2000:2000/udp
     volumes:
       - ~/.aws/:/root/.aws/
-    # networks:
-    #   - current
 
+# Go
   go:
     depends_on:
       - xray-daemon
@@ -40,8 +39,7 @@ services:
         gid: '1000'
         mode: 0777
 
-  # Node.js using X-Ray
-  # Node.js Frontend app
+  # Node.js - Frontend app
   nodejs:
     depends_on:
       - xray-daemon
@@ -59,8 +57,6 @@ services:
       - AWS_XRAY_CONTEXT_MISSING=RUNTIME_ERROR
     ports:
       -  80:3000
-    # networks:
-    #   - current
     volumes:
       - ./xray_sampling_rules.json:/xray_sampling_rules.json
     configs:
@@ -70,7 +66,7 @@ services:
         gid: '1000'
         mode: 0777
 
-  # Node.js Backend app
+  # Node.js - Backend app
   nodejs-backend:
     depends_on:
       - xray-daemon
@@ -80,8 +76,6 @@ services:
       - AWS_XRAY_DEBUG_MODE=debug
       - AWS_XRAY_TRACING_NAME=nodejs-backend
       - AWS_XRAY_CONTEXT_MISSING=RUNTIME_ERROR
-    # networks:
-    #   - current
     volumes:
       - ./xray_sampling_rules.json:/xray_sampling_rules.json
     configs:
@@ -90,12 +84,6 @@ services:
         uid: '1000'
         gid: '1000'
         mode: 0777
-
-# networks:
-#   current:
-#     driver: overlay
-#     driver_opts:
-#       encrypted: 'yes'
 
 configs:
   xray_sampling_rules:
